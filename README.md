@@ -18,18 +18,24 @@ A partir do diretório ```kafka``` é possível utilizar os comandos abaixo.
 
 #### Criação novo tópico
 
-```bash
-.\bin\windows\kafka-topics.bat --create --topic TopicName --bootstrap-server localhost:9094
+```batch
+.\bin\windows\kafka-topics.bat --create --topic TopicName --bootstrap-server localhost:9094,localhost:9095
+```
+
+##### Com partição
+
+```batch
+.\bin\windows\kafka-topics.bat --create --topic TopicName --partitions 2 --replication-factor 2 --bootstrap-server localhost:9094,localhost:9095
 ```
 
 #### Deletar tópico
 
-```bash
-.\bin\windows\kafka-topics.bat --delete --topic TopicName --bootstrap-server localhost:9094
+```batch
+.\bin\windows\kafka-topics.bat --delete --topic TopicName --bootstrap-server localhost:9094,localhost:9095
 ```
 
 #### Listagem de tópicos
 
-```bash
-.\bin\windows\kafka-topics.bat --list --bootstrap-server localhost:9094
+```batch
+.\bin\windows\kafka-topics.bat --list --bootstrap-server localhost:9094,localhost:9095
 ```
