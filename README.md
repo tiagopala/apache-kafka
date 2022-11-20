@@ -82,7 +82,10 @@ A partir do diretório ```kafka``` é possível utilizar os comandos abaixo.
 .\bin\windows\kafka-console-consumer.bat --topic TopicName --from-beginning --bootstrap-server localhost:9094,localhost:9095
 ```
 
-> Podemos passar os argumentos ```--property print.partition=true``` e ```--property print.offset=true``` para capturar detalhes dos eventos
+Argumentos opcionais:
+  - ```--property print.partition=true```
+  - ```--property print.offset=true```
+  - ```--group GroupName```
 
 ## Kafka Tool
 
