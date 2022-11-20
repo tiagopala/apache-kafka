@@ -60,6 +60,30 @@ A partir do diretório ```kafka``` é possível utilizar os comandos abaixo.
 .\bin\windows\kafka-topics.bat --alter --topic TopicName --partitions 3 --bootstrap-server localhost:9094,localhost:9095
 ```
 
+### Eventos
+
+#### Enviar
+
+```batch
+.\bin\windows\kafka-console-producer.bat --topic TopicName --bootstrap-server localhost:9094,localhost:9095
+```
+
+#### Receber
+
+##### Novas
+
+```batch
+.\bin\windows\kafka-console-consumer.bat --topic TopicName --bootstrap-server localhost:9094,localhost:9095
+```
+
+##### Retroativo
+
+```batch
+.\bin\windows\kafka-console-consumer.bat --topic TopicName --from-beginning --bootstrap-server localhost:9094,localhost:9095
+```
+
+> Podemos passar os argumentos ```--property print.partition=true``` e ```--property print.offset=true``` para capturar detalhes dos eventos
+
 ## Kafka Tool
 
 Para facilitar o gerenciamento do nosso cluster, podemos utilizar o kafka tool para visualização do nosso cluster, como pode ser visto na imagem abaixo.
