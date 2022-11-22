@@ -1,10 +1,25 @@
-﻿using Confluent.Kafka;
+﻿using ApacheKafkaWorker.Utils.Configurations;
+using Confluent.Kafka;
+using Microsoft.Extensions.Configuration;
 
-var kafkaConfig = new ConsumerConfig() { GroupId = "group-1", BootstrapServers = "localhost:9092" };
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-var consumer = new ConsumerBuilder<string, string>(kafkaConfig).Build();
+var builder = new ConfigurationBuilder()
+    .AddJsonFile($"appsettings.json", true, true)
+    .AddJsonFile($"appsettings.{environment}.json", true, true);
 
-consumer.Subscribe("topic-test");
+var config = builder.Build();
+
+var kafkaConfig = config.GetSection("ApacheKafkaConfig").Get<ApacheKafkaConfig>();
+
+var consumerConfig = new KafkaConsumerConfig(kafkaConfig.BootstrapServers, kafkaConfig.Consumer.GroupId);
+
+var consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
+
+if (string.IsNullOrEmpty(kafkaConfig.TopicName))
+    throw new NullReferenceException("Environment variable ApacheKafka:TopicName not set.");
+
+consumer.Subscribe(kafkaConfig.TopicName);
 
 Console.WriteLine("Consumer started.");
 

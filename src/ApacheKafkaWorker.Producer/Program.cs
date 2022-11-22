@@ -1,12 +1,24 @@
-﻿using Confluent.Kafka;
+﻿using ApacheKafkaWorker.Utils.Configurations;
+using Confluent.Kafka;
+using Microsoft.Extensions.Configuration;
 
-var kafkaConfig = new ProducerConfig() { BootstrapServers = "localhost:9092" };
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-var kafkaProducer = new ProducerBuilder<string,string>(kafkaConfig).Build();
+var builder = new ConfigurationBuilder()
+    .AddJsonFile($"appsettings.json", true, true)
+    .AddJsonFile($"appsettings.{environment}.json", true, true);
+
+var config = builder.Build();
+
+var kafkaConfig = config.GetSection("ApacheKafkaConfig").Get<ApacheKafkaConfig>();
+
+var producerConfig = new KafkaProducerConfig(kafkaConfig.BootstrapServers);
+
+var kafkaProducer = new ProducerBuilder<string,string>(producerConfig).Build();
 
 var random = new Random();
 
-const string topicName = "topic-test";
+string topicName = kafkaConfig.TopicName ?? throw new NullReferenceException("Environment variable ApacheKafka:TopicName not set.");
 
 var message = new Message<string, string>()
 {

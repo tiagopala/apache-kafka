@@ -1,0 +1,16 @@
+{
+    "name": "Event",
+    "namespace": "Avros.Schemas",
+    "type": "record",
+    "fields": [
+        {
+            "name": "id",
+            "type": "string"
+        },
+        {
+            "name": "description",
+            "type": "string"
+        }
+    ]
+}
+
