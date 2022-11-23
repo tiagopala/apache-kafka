@@ -19,9 +19,9 @@ string topicName = kafkaConfig.TopicName ?? throw new NullReferenceException(nam
 var message = new Avros.Schemas.Event
 {
     Id = Guid.NewGuid().ToString(),
-    Description = "Event description."
+    Description = $"DateTime: {DateTime.UtcNow:yyyy:MM:ddT:hh:mm:ss}"
 };
 
-await messageBus.ProducerAsync(topicName, message);
+await messageBus.ProduceAsync(topicName, message);
 
 Console.WriteLine($"Message sent.");

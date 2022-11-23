@@ -12,7 +12,7 @@ namespace ApacheKafkaWorker.Utils.MessageBus
             _bootstrapServers = bootstrapServers;
         }
 
-        public async Task ProducerAsync<T>(string topic, T message)
+        public async Task ProduceAsync<T>(string topic, T message)
         {
             var config = new ProducerConfig
             {
@@ -32,40 +32,35 @@ namespace ApacheKafkaWorker.Utils.MessageBus
             await Task.CompletedTask;
         }
 
-        public async Task ConsumerAsync<T>(string topic, Func<T, Task> onMessage, CancellationToken cancellation)
+        public async Task ConsumeAsync<T>(string topic, Func<T, Task> onMessage, CancellationToken cancellation)
         {
-            _ = Task.Factory.StartNew(async () =>
+            var config = new ConsumerConfig
             {
-                var config = new ConsumerConfig
+                GroupId = "string",
+                BootstrapServers = _bootstrapServers,
+                EnableAutoCommit = false,
+                EnableAutoOffsetStore = true
+            };
+
+            using var consumer = new ConsumerBuilder<string, T>(config)
+                .SetValueDeserializer(new AvroDeserializer<T>())
+                .Build();
+
+            consumer.Subscribe(topic);
+
+            while (!cancellation.IsCancellationRequested)
+            {
+                var result = consumer.Consume(cancellation);
+
+                if (result.IsPartitionEOF)
                 {
-                    GroupId = "string",
-                    BootstrapServers = _bootstrapServers,
-                    EnableAutoCommit = false,
-                    EnableAutoOffsetStore = false
-                };
-
-                using var consumer = new ConsumerBuilder<string, T>(config)
-                    .SetValueDeserializer(new AvroDeserializer<T>())
-                    .Build();
-
-                consumer.Subscribe(topic);
-
-                while (!cancellation.IsCancellationRequested)
-                {
-                    var result = consumer.Consume();
-
-                    if (result.IsPartitionEOF)
-                    {
-                        continue;
-                    }
-
-                    await onMessage(result.Message.Value);
-
-                    consumer.Commit();
+                    continue;
                 }
-            }, cancellation, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
-            await Task.CompletedTask;
+                await onMessage(result.Message.Value);
+
+                consumer.Commit();
+            }
         }
     }
 }

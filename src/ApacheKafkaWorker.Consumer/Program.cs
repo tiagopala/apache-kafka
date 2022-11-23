@@ -16,9 +16,9 @@ var messageBus = new KafkaMessageBus(kafkaConfig.BootstrapServers);
 
 Console.WriteLine("Consumer started.");
 
-await messageBus.ConsumerAsync<Avros.Schemas.Event>(kafkaConfig.TopicName, async request => await Log(), new CancellationToken());
+await messageBus.ConsumeAsync<Avros.Schemas.Event>(kafkaConfig.TopicName, async request => await ProcessMessage(request), new CancellationToken());
 
-async Task Log()
+async Task ProcessMessage(Avros.Schemas.Event @event)
 {
-    Console.WriteLine("TESTE");
+    Console.Write($"Message received. Id: {@event.Id}, Description: {@event.Description}.");
 }
