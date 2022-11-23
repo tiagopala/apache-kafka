@@ -16,10 +16,10 @@ namespace Avros.Schemas
 	[global::System.CodeDom.Compiler.GeneratedCodeAttribute("avrogen", "1.11.1")]
 	public partial class Event : global::Avro.Specific.ISpecificRecord
 	{
-		public static global::Avro.Schema _SCHEMA = global::Avro.Schema.Parse("{\"type\":\"record\",\"name\":\"Event\",\"namespace\":\"Avros.Schemas\",\"fields\":[{\"name\":\"id" +
-				"\",\"type\":\"string\"},{\"name\":\"description\",\"type\":\"string\"}]}");
-		private string _id;
-		private string _description;
+		public static global::Avro.Schema _SCHEMA = global::Avro.Schema.Parse("{\"type\":\"record\",\"name\":\"Event\",\"namespace\":\"Avros.Schemas\",\"fields\":[{\"name\":\"Id" +
+				"\",\"type\":\"string\"},{\"name\":\"Description\",\"type\":\"string\"}]}");
+		private string _Id;
+		private string _Description;
 		public virtual global::Avro.Schema Schema
 		{
 			get
@@ -27,34 +27,34 @@ namespace Avros.Schemas
 				return Event._SCHEMA;
 			}
 		}
-		public string id
+		public string Id
 		{
 			get
 			{
-				return this._id;
+				return this._Id;
 			}
 			set
 			{
-				this._id = value;
+				this._Id = value;
 			}
 		}
-		public string description
+		public string Description
 		{
 			get
 			{
-				return this._description;
+				return this._Description;
 			}
 			set
 			{
-				this._description = value;
+				this._Description = value;
 			}
 		}
 		public virtual object Get(int fieldPos)
 		{
 			switch (fieldPos)
 			{
-			case 0: return this.id;
-			case 1: return this.description;
+			case 0: return this.Id;
+			case 1: return this.Description;
 			default: throw new global::Avro.AvroRuntimeException("Bad index " + fieldPos + " in Get()");
 			};
 		}
@@ -62,8 +62,8 @@ namespace Avros.Schemas
 		{
 			switch (fieldPos)
 			{
-			case 0: this.id = (System.String)fieldValue; break;
-			case 1: this.description = (System.String)fieldValue; break;
+			case 0: this.Id = (System.String)fieldValue; break;
+			case 1: this.Description = (System.String)fieldValue; break;
 			default: throw new global::Avro.AvroRuntimeException("Bad index " + fieldPos + " in Put()");
 			};
 		}

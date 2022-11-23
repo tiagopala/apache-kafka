@@ -4,11 +4,11 @@
     "type": "record",
     "fields": [
         {
-            "name": "id",
+            "name": "Id",
             "type": "string"
         },
         {
-            "name": "description",
+            "name": "Description",
             "type": "string"
         }
     ]

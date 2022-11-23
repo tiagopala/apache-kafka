@@ -8,7 +8,7 @@ namespace ApacheKafkaWorker.Utils.Extensions
         public static void AddBootstrapServers(this ClientConfig config, string bootstrapServers)
         {
             if (string.IsNullOrEmpty(bootstrapServers))
-                throw new NullReferenceException("Environment variable ApacheKafka:BootstrapServers not set.");
+                throw new ArgumentNullException(nameof(bootstrapServers));
 
             config.BootstrapServers = bootstrapServers;
         }

@@ -9,9 +9,9 @@ namespace ApacheKafkaWorker.Utils.Configurations
             this.AddBootstrapServers(bootstrapServers);
 
             if (string.IsNullOrEmpty(groupId))
-                throw new NullReferenceException("Environment variable ApacheKafka:Consumer.GroupId not set.");
+                throw new ArgumentNullException(nameof(groupId));
 
-            base.GroupId= groupId;
+            base.GroupId = groupId;
         }
     }
 }

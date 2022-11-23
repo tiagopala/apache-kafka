@@ -1,5 +1,7 @@
 ﻿using ApacheKafkaWorker.Utils.Configurations;
 using Confluent.Kafka;
+using Confluent.SchemaRegistry;
+using Confluent.SchemaRegistry.Serdes;
 using Microsoft.Extensions.Configuration;
 
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -12,18 +14,26 @@ var config = builder.Build();
 
 var kafkaConfig = config.GetSection("ApacheKafkaConfig").Get<ApacheKafkaConfig>();
 
+var schemaRegistryConfig = new ApacheKafkaWorker.Utils.Configurations.SchemaRegistryConfig(config["SchemaRegistryConfig:Url"]);
+
+var schemaClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
+
 var producerConfig = new KafkaProducerConfig(kafkaConfig.BootstrapServers);
 
-var kafkaProducer = new ProducerBuilder<string,string>(producerConfig).Build();
+var kafkaProducer = new ProducerBuilder<string,Avros.Schemas.Event>(producerConfig)
+    .SetValueSerializer(new AvroSerializer<Avros.Schemas.Event>(schemaClient))
+    .Build();
 
-var random = new Random();
+string topicName = kafkaConfig.TopicName ?? throw new NullReferenceException(nameof(kafkaConfig.TopicName));
 
-string topicName = kafkaConfig.TopicName ?? throw new NullReferenceException("Environment variable ApacheKafka:TopicName not set.");
-
-var message = new Message<string, string>()
+var message = new Message<string, Avros.Schemas.Event>()
 {
     Key = Guid.NewGuid().ToString(),
-    Value = $"Message - {random.Next(1000)}"
+    Value = new Avros.Schemas.Event
+    {
+        Id = Guid.NewGuid().ToString(),
+        Description = "Event description."
+    }
 };
 
 var result = await kafkaProducer.ProduceAsync(topicName, message);
