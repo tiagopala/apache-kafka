@@ -1,4 +1,5 @@
-﻿using ApacheKafkaWorker.Utils.Configurations;
+﻿using ApacheKafkaWorker.Producer;
+using ApacheKafkaWorker.Utils.Configurations;
 using ApacheKafkaWorker.Utils.MessageBus;
 using Microsoft.Extensions.Configuration;
 
@@ -16,7 +17,7 @@ var messageBus = new KafkaMessageBus(kafkaConfig.BootstrapServers);
 
 string topicName = kafkaConfig.TopicName ?? throw new NullReferenceException(nameof(kafkaConfig.TopicName));
 
-var message = new Avros.Schemas.Event
+var message = new OnboardingEvent
 {
     Id = Guid.NewGuid().ToString(),
     Description = $"DateTime: {DateTime.UtcNow:yyyy:MM:ddT:hh:mm:ss}"

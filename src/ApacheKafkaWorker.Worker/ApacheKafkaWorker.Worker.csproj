@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>dotnet-ApacheKafkaWorker.Worker-b03bb9a3-d38f-499e-b694-9fd5c1066d24</UserSecretsId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MediatR" Version="11.1.0" />
+		<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+		<PackageReference Include="Confluent.Kafka" Version="1.9.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\ApacheKafkaWorker.Domain\ApacheKafkaWorker.Domain.csproj" />
+	  <ProjectReference Include="..\ApacheKafkaWorker.Infrastructure\ApacheKafkaWorker.Infrastructure.csproj" />
+	</ItemGroup>
+</Project>
