@@ -1,28 +1,17 @@
-﻿using ApacheKafkaWorker.Producer;
-using ApacheKafkaWorker.Utils.Configurations;
-using ApacheKafkaWorker.Utils.MessageBus;
-using Microsoft.Extensions.Configuration;
+﻿using ApacheKafka.MessageBus;
+using ApacheKafkaWorker.Producer;
 
-var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+var builder = WebApplication.CreateBuilder(args);
 
-var builder = new ConfigurationBuilder()
-    .AddJsonFile($"appsettings.json", true, true)
-    .AddJsonFile($"appsettings.{environment}.json", true, true);
+builder.Services
+    .AddMessageBus(builder.Configuration["Kafka:BootstrapServers"]);
 
-var config = builder.Build();
+var app = builder.Build();
 
-var kafkaConfig = config.GetSection("ApacheKafkaConfig").Get<ApacheKafkaConfig>();
+var messageBus = app.Services.GetService<IKafkaMessageBus>();
 
-var messageBus = new KafkaMessageBus(kafkaConfig.BootstrapServers);
+var message = new UserEvent("", "", "", 0, 0, new Address("", 0));
 
-string topicName = kafkaConfig.TopicName ?? throw new NullReferenceException(nameof(kafkaConfig.TopicName));
-
-var message = new OnboardingEvent
-{
-    Id = Guid.NewGuid().ToString(),
-    Description = $"DateTime: {DateTime.UtcNow:yyyy:MM:ddT:hh:mm:ss}"
-};
-
-await messageBus.ProduceAsync(topicName, message);
+await messageBus.ProduceAsync(builder.Configuration["Kafka:TopicName"], message, "ApacheKafkaWorker.Producer");
 
 Console.WriteLine($"Message sent.");

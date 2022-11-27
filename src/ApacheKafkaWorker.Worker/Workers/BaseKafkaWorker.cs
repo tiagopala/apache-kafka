@@ -1,7 +1,6 @@
 using ApacheKafkaWorker.Infrastructure.Avros;
 using Confluent.Kafka;
 using MediatR;
-using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Text.Json;
 
