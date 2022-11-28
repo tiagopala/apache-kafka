@@ -25,3 +25,21 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
       - zookeeper
+  
+  init-kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    depends_on:
+      - broker-1
+    entrypoint: [ '/bin/sh', '-c']
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server broker-1:9092 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server broker-1:9092 --create --if-not-exists --topic create-user --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server broker-1:9092 --create --if-not-exists --topic user-created --replication-factor 1 --partitions 1
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server broker-1:9092 --list
+      "      

@@ -16,9 +16,9 @@ namespace ApacheKafkaWorker.Worker
             _ = services
                 .AddMessageBus(configuration["Kafka:BootstrapServers"])
                 .AddMediatR(typeof(RegisterNaturalPersonEvent))
-                .RegisterHostedServices()
                 .RegisterServices()
-                .RegisterHandlers();
+                .RegisterHandlers()
+                .RegisterHostedServices();
 
             return services;
         }
@@ -40,8 +40,7 @@ namespace ApacheKafkaWorker.Worker
         public static IServiceCollection RegisterHandlers(this IServiceCollection services)
         {
             services
-                .AddScoped<IRequestHandler<RegisterNaturalPersonEvent>, RegisterNaturalPersonEventHandler>()
-                .AddScoped<IRequestHandler<CreateNaturalPersonCommand, string>, CreateNaturalPersonCommandHandler>();
+                .AddScoped<IRequestHandler<RegisterNaturalPersonEvent>, RegisterNaturalPersonEventHandler>();
 
             return services;
         }

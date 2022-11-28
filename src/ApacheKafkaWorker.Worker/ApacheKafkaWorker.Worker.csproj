@@ -14,7 +14,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\ApacheKafka.MessageBus\ApacheKafka.MessageBus.csproj" />
 	  <ProjectReference Include="..\ApacheKafkaWorker.Domain\ApacheKafkaWorker.Domain.csproj" />
 	  <ProjectReference Include="..\ApacheKafkaWorker.Infrastructure\ApacheKafkaWorker.Infrastructure.csproj" />
 	</ItemGroup>

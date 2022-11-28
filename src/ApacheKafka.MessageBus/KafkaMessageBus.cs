@@ -27,7 +27,7 @@ namespace ApacheKafka.MessageBus
             var headers = new Headers
             {
                 new Header("application", Encoding.UTF8.GetBytes(application)),
-                new Header("trace-id", string.IsNullOrEmpty(traceId) ? Guid.NewGuid().ToByteArray() : Encoding.UTF8.GetBytes(traceId))
+                new Header("trace-id", string.IsNullOrEmpty(traceId) ? Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()) : Encoding.UTF8.GetBytes(traceId))
             };
 
             _ = await producer.ProduceAsync(topic, new Message<string, T>
