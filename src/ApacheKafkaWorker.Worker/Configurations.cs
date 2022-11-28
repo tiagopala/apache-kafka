@@ -32,7 +32,7 @@ namespace ApacheKafkaWorker.Worker
 
         public static IServiceCollection RegisterServices(this IServiceCollection services)
         {
-            services.AddScoped<ICreateNaturalPersonService, CreateNaturalPersonService>();
+            services.AddScoped<INaturalPersonServices, NaturalPersonServices>();
 
             return services;
         }

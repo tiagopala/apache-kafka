@@ -1,4 +1,5 @@
-﻿using ApacheKafkaWorker.Domain.Events;
+﻿using ApacheKafka.MessageBus.BackgroundServices;
+using ApacheKafkaWorker.Domain.Events;
 using MediatR;
 
 namespace ApacheKafkaWorker.Worker.Workers

@@ -6,9 +6,9 @@ namespace ApacheKafkaWorker.Domain.Handlers
 {
     public class CreateNaturalPersonCommandHandler : IRequestHandler<CreateNaturalPersonCommand, string>
     {
-        private readonly ICreateNaturalPersonService _createNaturalPersonService;
+        private readonly INaturalPersonServices _createNaturalPersonService;
 
-        public CreateNaturalPersonCommandHandler(ICreateNaturalPersonService createNaturalPersonService)
+        public CreateNaturalPersonCommandHandler(INaturalPersonServices createNaturalPersonService)
         {
             _createNaturalPersonService = createNaturalPersonService;
         }
@@ -18,7 +18,7 @@ namespace ApacheKafkaWorker.Domain.Handlers
             // TODO: Salvar na tabela 
 
             // Enviar evento para serviço de criação de usuário ✅
-            await _createNaturalPersonService.CreateNaturalPerson(request);
+            await _createNaturalPersonService.SendCreateNaturalPersonEventAsync(request);
 
             return request.Id;
         }
