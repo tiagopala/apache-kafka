@@ -3,10 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApacheKafkaWorker.Producer", "src\ApacheKafkaWorker.Producer\ApacheKafkaWorker.Producer.csproj", "{CCA9E92B-028F-465D-A700-29C51281E7B2}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApacheKafkaWorker.Utils", "src\ApacheKafkaWorker.Utils\ApacheKafkaWorker.Utils.csproj", "{233F3A82-171A-483B-BDAA-AED4AE9B0C4C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApacheKafkaWorker.Worker", "src\ApacheKafkaWorker.Worker\ApacheKafkaWorker.Worker.csproj", "{9902759D-2E0D-46A8-BE8B-13EE3D5B1EE6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D1338582-600C-4A1C-9071-7E61C0074692}"
@@ -21,20 +17,18 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApacheKafkaWorker.Domain", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApacheKafkaWorker.Infrastructure", "src\ApacheKafkaWorker.Infrastructure\ApacheKafkaWorker.Infrastructure.csproj", "{527FF1CA-F22B-434A-AE27-BA72C1BED4CE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApacheKafkaWorker.API", "src\ApacheKafkaWorker.API\ApacheKafkaWorker.API.csproj", "{DC0E7FB4-31D0-49D1-8599-D536DE41D0C2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildingBlocks", "BuildingBlocks", "{EF89801D-B531-4B3D-8218-A38F465CF4EE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApacheKafka.MessageBus", "src\ApacheKafka.MessageBus\ApacheKafka.MessageBus.csproj", "{9DC21FFC-961A-4E00-ADCD-AEDF2924AB0E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CCA9E92B-028F-465D-A700-29C51281E7B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CCA9E92B-028F-465D-A700-29C51281E7B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CCA9E92B-028F-465D-A700-29C51281E7B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CCA9E92B-028F-465D-A700-29C51281E7B2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{233F3A82-171A-483B-BDAA-AED4AE9B0C4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{233F3A82-171A-483B-BDAA-AED4AE9B0C4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{233F3A82-171A-483B-BDAA-AED4AE9B0C4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{233F3A82-171A-483B-BDAA-AED4AE9B0C4C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9902759D-2E0D-46A8-BE8B-13EE3D5B1EE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9902759D-2E0D-46A8-BE8B-13EE3D5B1EE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9902759D-2E0D-46A8-BE8B-13EE3D5B1EE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -47,9 +41,20 @@ Global
 		{527FF1CA-F22B-434A-AE27-BA72C1BED4CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{527FF1CA-F22B-434A-AE27-BA72C1BED4CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{527FF1CA-F22B-434A-AE27-BA72C1BED4CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC0E7FB4-31D0-49D1-8599-D536DE41D0C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC0E7FB4-31D0-49D1-8599-D536DE41D0C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC0E7FB4-31D0-49D1-8599-D536DE41D0C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC0E7FB4-31D0-49D1-8599-D536DE41D0C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DC21FFC-961A-4E00-ADCD-AEDF2924AB0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DC21FFC-961A-4E00-ADCD-AEDF2924AB0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DC21FFC-961A-4E00-ADCD-AEDF2924AB0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DC21FFC-961A-4E00-ADCD-AEDF2924AB0E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9DC21FFC-961A-4E00-ADCD-AEDF2924AB0E} = {EF89801D-B531-4B3D-8218-A38F465CF4EE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {88C21836-C556-4E06-9475-5C9473F5D3C3}

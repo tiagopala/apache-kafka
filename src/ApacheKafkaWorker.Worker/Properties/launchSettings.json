@@ -3,7 +3,9 @@
     "ApacheKafkaWorker.Worker": {
       "commandName": "Project",
       "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7071;http://localhost:5071",
       "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
         "DOTNET_ENVIRONMENT": "Development"
       }
     }
