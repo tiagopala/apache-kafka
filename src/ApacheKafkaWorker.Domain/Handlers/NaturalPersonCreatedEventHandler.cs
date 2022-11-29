@@ -19,7 +19,7 @@ namespace ApacheKafkaWorker.Domain.Handlers
 
             // TODO: Send Email Customer Created
 
-            _logger.LogInformation($"User {request.UserId} created. CustomerId: {request.CustomerId}");
+            _logger.LogInformation($"User {request.UserId} registered. CustomerId: {request.CustomerId}");
 
             return Unit.Task;
         }

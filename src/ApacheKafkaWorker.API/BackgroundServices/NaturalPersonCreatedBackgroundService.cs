@@ -7,6 +7,6 @@ namespace ApacheKafkaWorker.API.BackgroundServices
     public class NaturalPersonCreatedBackgroundService : BaseKafkaWorker<NaturalPersonCreatedEvent>
     {
         public NaturalPersonCreatedBackgroundService(ILogger<BaseKafkaWorker<NaturalPersonCreatedEvent>> logger, IConfiguration configuration, IMediator mediator) 
-            : base(logger, configuration, mediator) { }
+            : base(logger, configuration, mediator, configuration["Kafka:TopicName"]) { }
     }
 }

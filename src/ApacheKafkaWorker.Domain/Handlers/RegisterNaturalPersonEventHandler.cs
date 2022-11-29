@@ -19,6 +19,8 @@ namespace ApacheKafkaWorker.Domain.Handlers
 
         public async Task<Unit> Handle(RegisterNaturalPersonEvent request, CancellationToken cancellationToken)
         {
+            _logger.LogInformation($"User: {request.Id} received to be registered.");
+
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var naturalPersonServices = scope.ServiceProvider.GetService<INaturalPersonServices>();
@@ -27,7 +29,7 @@ namespace ApacheKafkaWorker.Domain.Handlers
 
                 await naturalPersonServices.SendNaturalPersonCreatedEventAsync(message);
 
-                _logger.LogInformation("Processed");
+                _logger.LogInformation($"User: {request.Id} - CustomerId: {message.CustomerId} created sucessfully and sent to write off.");
             }
 
             return Unit.Task.Result;

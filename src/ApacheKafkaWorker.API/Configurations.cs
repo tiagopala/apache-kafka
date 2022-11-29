@@ -1,4 +1,5 @@
 ﻿using ApacheKafka.MessageBus;
+using ApacheKafkaWorker.API.BackgroundServices;
 using ApacheKafkaWorker.Domain.Commands;
 using ApacheKafkaWorker.Domain.Events;
 using ApacheKafkaWorker.Domain.Handlers;
@@ -17,7 +18,8 @@ namespace ApacheKafkaWorker.API
                 .AddMediatR(typeof(CreateNaturalPersonCommand))
                 .AddScoped<INaturalPersonServices, NaturalPersonServices>()
                 .AddScoped<IRequestHandler<NaturalPersonCreatedEvent>, NaturalPersonCreatedEventHandler>()
-                .AddScoped<IRequestHandler<CreateNaturalPersonCommand, string>, CreateNaturalPersonCommandHandler>();
+                .AddScoped<IRequestHandler<CreateNaturalPersonCommand, string>, CreateNaturalPersonCommandHandler>()
+                .AddHostedService<NaturalPersonCreatedBackgroundService>();
 
             return services;
         }

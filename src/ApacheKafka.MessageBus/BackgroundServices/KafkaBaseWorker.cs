@@ -14,63 +14,70 @@ namespace ApacheKafka.MessageBus.BackgroundServices
         private readonly ILogger<BaseKafkaWorker<T>> _logger;
         private readonly IConfiguration _configuration;
         private readonly IMediator _mediator;
+        private readonly string _topicName;
 
-        protected BaseKafkaWorker(ILogger<BaseKafkaWorker<T>> logger, IConfiguration configuration, IMediator mediator)
+        protected BaseKafkaWorker(ILogger<BaseKafkaWorker<T>> logger, IConfiguration configuration, IMediator mediator, string topicName)
         {
             _logger = logger;
             _configuration = configuration;
             _mediator = mediator;
+            _topicName = topicName;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var consumerConfig = new ConsumerConfig()
+            _ = Task.Factory.StartNew(async () =>
             {
-                BootstrapServers = _configuration["Kafka:BootstrapServers"] ?? throw new ArgumentNullException("Kafka:BootstrapServers"),
-                GroupId = _configuration["Kafka:Consumer:GroupId"] ?? throw new ArgumentNullException("Kafka:Consumer:GroupId"),
-                EnableAutoCommit = false,
-                EnableAutoOffsetStore = true,
-            };
-
-            using var consumer = new ConsumerBuilder<string, T>(consumerConfig)
-                .SetValueDeserializer(new AvroDeserializer<T>())
-                .Build();
-
-            consumer.Subscribe(_configuration["Kafka:TopicName"] ?? throw new ArgumentNullException("Kafka:BootstrapServers"));
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                var result = consumer.Consume(stoppingToken);
-
-                if (result.IsPartitionEOF)
+                var consumerConfig = new ConsumerConfig()
                 {
-                    continue;
-                }
+                    BootstrapServers = _configuration["Kafka:BootstrapServers"] ?? throw new ArgumentNullException("Kafka:BootstrapServers"),
+                    GroupId = _configuration["Kafka:Consumer:GroupId"] ?? throw new ArgumentNullException("Kafka:Consumer:GroupId"),
+                    EnableAutoCommit = false,
+                    EnableAutoOffsetStore = true,
+                };
 
-                try
+                using var consumer = new ConsumerBuilder<string, T>(consumerConfig)
+                    .SetValueDeserializer(new AvroDeserializer<T>())
+                    .Build();
+
+                consumer.Subscribe(_topicName ?? throw new ArgumentNullException("Kafka:BootstrapServers"));
+
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    _logger.Log(LogLevel.Information, $"Message received. Payload: {JsonSerializer.Serialize(result.Message.Value)}");
+                    var result = consumer.Consume(stoppingToken);
 
-                    var headers = result.Message.Headers.ToDictionary(h => h.Key, h => Encoding.UTF8.GetString(h.GetValueBytes()));
+                    if (result.IsPartitionEOF)
+                    {
+                        continue;
+                    }
 
-                    var traceId = GetTraceId(headers);
+                    try
+                    {
+                        _logger.Log(LogLevel.Information, $"Message received. Payload: {JsonSerializer.Serialize(result.Message.Value)}");
 
-                    var message = result.Message.Value;
+                        var headers = result.Message.Headers.ToDictionary(h => h.Key, h => Encoding.UTF8.GetString(h.GetValueBytes()));
 
-                    await _mediator.Send(message);
+                        var traceId = GetTraceId(headers);
 
+                        var message = result.Message.Value;
+
+                        await _mediator.Send(message);
+
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Log(LogLevel.Error, e, $"Message '{result.Message.Key}' could not be processed.");
+
+                        throw;
+                    }
+
+                    _logger.Log(LogLevel.Information, $"Message '{result.Message.Key}' consumed.");
+
+                    consumer.Commit();
                 }
-                catch (Exception e)
-                {
-                    _logger.Log(LogLevel.Error, e, $"Message '{result.Message.Key}' could not be processed.");
+            }, stoppingToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
-                    throw;
-                }
-
-                _logger.Log(LogLevel.Information, $"Message '{result.Message.Key}' consumed.");
-
-                consumer.Commit();
-            }
+            await Task.CompletedTask;
         }
 
         private static string GetTraceId(Dictionary<string, string> headers)
