@@ -1,8 +1,14 @@
 using ApacheKafkaWorker.API;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+Configurations.AddSerilog(builder.Configuration);
+
+builder.Host.UseSerilog(Log.Logger);
+
 builder.Services.AddControllers();
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services
     .AddEndpointsApiExplorer()
     .AddSwaggerGen()

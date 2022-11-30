@@ -1,7 +1,6 @@
 ﻿using ApacheKafkaWorker.Infrastructure.Avros;
 using Confluent.Kafka;
 using MediatR;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Text;
@@ -12,15 +11,17 @@ namespace ApacheKafka.MessageBus.BackgroundServices
     public abstract class BaseKafkaWorker<T> : BackgroundService where T : IRequest
     {
         private readonly ILogger<BaseKafkaWorker<T>> _logger;
-        private readonly IConfiguration _configuration;
         private readonly IMediator _mediator;
+        private readonly string _bootstrapServers;
+        private readonly string _groupId;
         private readonly string _topicName;
 
-        protected BaseKafkaWorker(ILogger<BaseKafkaWorker<T>> logger, IConfiguration configuration, IMediator mediator, string topicName)
+        protected BaseKafkaWorker(ILogger<BaseKafkaWorker<T>> logger, IMediator mediator, string bootstrapServers, string groupId, string topicName)
         {
             _logger = logger;
-            _configuration = configuration;
             _mediator = mediator;
+            _bootstrapServers = bootstrapServers;
+            _groupId = groupId;
             _topicName = topicName;
         }
 
@@ -30,8 +31,8 @@ namespace ApacheKafka.MessageBus.BackgroundServices
             {
                 var consumerConfig = new ConsumerConfig()
                 {
-                    BootstrapServers = _configuration["Kafka:BootstrapServers"] ?? throw new ArgumentNullException("Kafka:BootstrapServers"),
-                    GroupId = _configuration["Kafka:Consumer:GroupId"] ?? throw new ArgumentNullException("Kafka:Consumer:GroupId"),
+                    BootstrapServers = _bootstrapServers,
+                    GroupId = _groupId,
                     EnableAutoCommit = false,
                     EnableAutoOffsetStore = true,
                 };
@@ -40,7 +41,7 @@ namespace ApacheKafka.MessageBus.BackgroundServices
                     .SetValueDeserializer(new AvroDeserializer<T>())
                     .Build();
 
-                consumer.Subscribe(_topicName ?? throw new ArgumentNullException("Kafka:BootstrapServers"));
+                consumer.Subscribe(_topicName);
 
                 while (!stoppingToken.IsCancellationRequested)
                 {
