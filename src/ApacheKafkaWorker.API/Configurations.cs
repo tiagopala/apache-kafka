@@ -6,7 +6,6 @@ using ApacheKafkaWorker.Domain.Handlers;
 using ApacheKafkaWorker.Domain.Services;
 using ApacheKafkaWorker.Infrastructure.Services;
 using MediatR;
-using Serilog;
 
 namespace ApacheKafkaWorker.API
 {
@@ -23,13 +22,6 @@ namespace ApacheKafkaWorker.API
                 .AddHostedService<NaturalPersonCreatedBackgroundService>();
 
             return services;
-        }
-
-        public static void AddSerilog(IConfiguration configuration)
-        {
-            Log.Logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(configuration)
-                .CreateLogger();
         }
     }
 }

@@ -1,15 +1,18 @@
-var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
-var builder = new ConfigurationBuilder()
-    .AddJsonFile($"appsettings.json", true, true)
-    .AddJsonFile($"appsettings.{environment}.json", true, true);
-
-var config = builder.Build();
+using Serilog;
 
 IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices(services =>
+    .UseSerilog((host, loggerConfiguration) => loggerConfiguration.ReadFrom.Configuration(host.Configuration))
+    .ConfigureServices((hostContext, services) =>
     {
-        services.AddServices(config);
+        IConfiguration configuration = hostContext.Configuration;
+
+        var builder = new ConfigurationBuilder()
+            .SetBasePath(hostContext.HostingEnvironment.ContentRootPath)
+            .AddJsonFile("appsettings.json", true, true)
+            .AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json", true)
+            .AddEnvironmentVariables();
+
+        services.AddServices(configuration);
     })
     .Build();
 
