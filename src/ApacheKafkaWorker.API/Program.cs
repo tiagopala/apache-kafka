@@ -3,6 +3,7 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Serilog Configuration
 builder.Host.UseSerilog((host, loggerConfiguration) => 
     loggerConfiguration
         .ReadFrom.Configuration(builder.Configuration));
