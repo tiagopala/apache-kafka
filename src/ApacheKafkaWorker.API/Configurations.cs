@@ -14,7 +14,7 @@ namespace ApacheKafkaWorker.API
         public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
         {
             _ = services
-                .AddMessageBus(configuration["Kafka:BootstrapServers"])
+                .AddMessageBus(configuration["Kafka:BootstrapServers"]!, typeof(Program).Assembly.GetName().Name!, typeof(Program).Assembly.GetName().Version!.ToString())
                 .AddMediatR(typeof(CreateNaturalPersonCommand))
                 .AddScoped<INaturalPersonServices, NaturalPersonServices>()
                 .AddScoped<IRequestHandler<NaturalPersonCreatedEvent>, NaturalPersonCreatedEventHandler>()

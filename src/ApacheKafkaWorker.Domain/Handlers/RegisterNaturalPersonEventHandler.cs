@@ -27,7 +27,7 @@ namespace ApacheKafkaWorker.Domain.Handlers
 
                 var message = new NaturalPersonCreatedEvent(request.Id, Guid.NewGuid().ToString());
 
-                await naturalPersonServices.SendNaturalPersonCreatedEventAsync(message);
+                await naturalPersonServices!.SendNaturalPersonCreatedEventAsync(message);
 
                 _logger.LogInformation($"User: {request.Id} - CustomerId: {message.CustomerId} created sucessfully and sent to write off.");
             }

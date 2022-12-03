@@ -1,7 +1,6 @@
-﻿namespace ApacheKafka.MessageBus
+﻿namespace ApacheKafka.MessageBus;
+
+public interface IKafkaMessageBus
 {
-    public interface IKafkaMessageBus
-    {
-        Task ProduceAsync<T>(string topic, T message, string application, string traceId = "");
-    }
+    Task ProduceAsync<T>(string topicName, T message);
 }

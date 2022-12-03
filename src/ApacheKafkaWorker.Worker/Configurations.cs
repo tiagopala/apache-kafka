@@ -1,5 +1,4 @@
 ﻿using ApacheKafka.MessageBus;
-using ApacheKafkaWorker.Domain.Commands;
 using ApacheKafkaWorker.Domain.Events;
 using ApacheKafkaWorker.Domain.Handlers;
 using ApacheKafkaWorker.Domain.Services;
@@ -14,7 +13,7 @@ namespace ApacheKafkaWorker.Worker
         public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
         {
             _ = services
-                .AddMessageBus(configuration["Kafka:BootstrapServers"])
+                .AddMessageBus(configuration["Kafka:BootstrapServers"]!, typeof(Program).Assembly.GetName().Name!, typeof(Program).Assembly.GetName().Version!.ToString())
                 .AddMediatR(typeof(RegisterNaturalPersonEvent))
                 .RegisterServices()
                 .RegisterHandlers()
