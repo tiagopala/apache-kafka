@@ -3,6 +3,9 @@ using Confluent.Kafka;
 using MediatR;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
@@ -10,19 +13,24 @@ namespace ApacheKafka.MessageBus.BackgroundServices
 {
     public abstract class BaseKafkaWorker<T> : BackgroundService where T : IRequest
     {
+        private readonly TextMapPropagator _textMapPropagator = Propagators.DefaultTextMapPropagator;
         private readonly ILogger<BaseKafkaWorker<T>> _logger;
         private readonly IMediator _mediator;
         private readonly string _bootstrapServers;
         private readonly string _groupId;
         private readonly string _topicName;
+        private readonly string _serviceName;
+        private readonly string _serviceVersion;
 
-        protected BaseKafkaWorker(ILogger<BaseKafkaWorker<T>> logger, IMediator mediator, string bootstrapServers, string groupId, string topicName)
+        protected BaseKafkaWorker(ILogger<BaseKafkaWorker<T>> logger, IMediator mediator, string bootstrapServers, string groupId, string topicName, string serviceName, string serviceVersion)
         {
             _logger = logger;
             _mediator = mediator;
             _bootstrapServers = bootstrapServers;
             _groupId = groupId;
             _topicName = topicName;
+            _serviceName = serviceName;
+            _serviceVersion = serviceVersion;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -54,13 +62,38 @@ namespace ApacheKafka.MessageBus.BackgroundServices
 
                     try
                     {
-                        _logger.Log(LogLevel.Information, $"Message received. Payload: {JsonSerializer.Serialize(result.Message.Value)}");
+                        var parentContext = _textMapPropagator.Extract(default, result.Message.Headers, ExtractTraceContextFromHeaders);
+                        Baggage.Current = parentContext.Baggage;
 
-                        var headers = result.Message.Headers.ToDictionary(h => h.Key, h => Encoding.UTF8.GetString(h.GetValueBytes()));
+                        var activitySource = new ActivitySource(_serviceName, _serviceVersion);
 
-                        var traceId = GetTraceId(headers);
+                        using var activity = activitySource.StartActivity($"{_topicName}Received", ActivityKind.Consumer, parentContext.ActivityContext);
+
+                        ActivityContext contextToInject = default;
+                        if (activity != null)
+                        {
+                            contextToInject = activity.Context;
+                        }
+                        else if (Activity.Current != null)
+                        {
+                            contextToInject = Activity.Current.Context;
+                        }
 
                         var message = result.Message.Value;
+
+                        var serializedMessage = JsonSerializer.Serialize(message);
+
+                        activity?.SetTag("messaging.system", "kafka");
+                        activity?.SetTag("messaging.destination_kind", "topic");
+                        activity?.SetTag("messaging.destination", _topicName);
+                        activity?.SetTag("messaging.operation", "process");
+                        activity?.SetTag("messaging.kafka.consumer_group", _groupId);
+                        activity?.SetTag("messaging.kafka.partition", result.Partition.ToString());
+                        activity?.SetTag("message", serializedMessage);
+
+                        _logger.Log(LogLevel.Information, $"Message received. Payload: {serializedMessage}");
+
+                        var headers = result.Message.Headers.ToDictionary(h => h.Key, h => Encoding.UTF8.GetString(h.GetValueBytes()));
 
                         await _mediator.Send(message);
 
@@ -81,12 +114,14 @@ namespace ApacheKafka.MessageBus.BackgroundServices
             await Task.CompletedTask;
         }
 
-        private static string GetTraceId(Dictionary<string, string> headers)
+        private static IEnumerable<string> ExtractTraceContextFromHeaders(Headers headers, string key)
         {
-            if (!headers.TryGetValue("trace-id", out string traceId))
-                traceId = Guid.NewGuid().ToString();
+            var header = headers.FirstOrDefault(h => h.Key == key);
 
-            return traceId;
+            if (header is not null)
+                return new[] { Encoding.UTF8.GetString(header.GetValueBytes()) };
+
+            return Enumerable.Empty<string>();
         }
     }
 }

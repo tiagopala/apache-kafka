@@ -16,7 +16,7 @@ builder.Services.AddOpenTelemetryTracing(tracerProviderBuilder =>
                 .AddService(serviceName: OpenTelemetryExtensions.ServiceName, serviceVersion: OpenTelemetryExtensions.ServiceVersion))
         .AddHttpClientInstrumentation()
         .AddAspNetCoreInstrumentation()
-        .AddConsoleExporter() // Remoção do exporter para o console visto que estamos utilizando o exporter para o jaeger abaixo
+        .AddConsoleExporter() // Exportando também para o Console para capturar o traceId e pesquisar diretamente no jaeger
         .AddJaegerExporter(exporter =>
         {
             exporter.AgentHost = builder.Configuration["Jaeger:AgentHost"];

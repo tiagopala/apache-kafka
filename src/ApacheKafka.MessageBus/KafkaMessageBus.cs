@@ -39,15 +39,15 @@ public class KafkaMessageBus : IKafkaMessageBus
             contextToInject = Activity.Current.Context;
         }
 
-        var headers = new Headers();
-
-        _textMapPropagator.Inject(new PropagationContext(contextToInject, Baggage.Current), headers, InjectTraceContextIntoHeaders);
-
         activity?.SetTag("messaging.system", "kafka");
         activity?.SetTag("messaging.destination_kind", "topic");
         activity?.SetTag("messaging.destination", topicName);
         activity?.SetTag("messaging.operation", "process");
         activity?.SetTag("message", JsonSerializer.Serialize(message));
+
+        var headers = new Headers();
+
+        _textMapPropagator.Inject(new PropagationContext(contextToInject, Baggage.Current), headers, InjectTraceContextIntoHeaders);
 
         var config = new ProducerConfig
         {
