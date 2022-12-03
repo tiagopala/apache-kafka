@@ -28,6 +28,7 @@ services:
   
   init-kafka:
     image: confluentinc/cp-kafka:7.3.0
+    container_name: init-kafka
     depends_on:
       - broker-1
     entrypoint: [ '/bin/sh', '-c']
@@ -37,9 +38,16 @@ services:
       kafka-topics --bootstrap-server broker-1:9092 --list
 
       echo -e 'Creating kafka topics'
-      kafka-topics --bootstrap-server broker-1:9092 --create --if-not-exists --topic create-user --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server broker-1:9092 --create --if-not-exists --topic user-created --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server broker-1:9092 --create --if-not-exists --topic CreateUser --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server broker-1:9092 --create --if-not-exists --topic UserCreated --replication-factor 1 --partitions 1
 
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server broker-1:9092 --list
-      "      
+      "
+  
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"

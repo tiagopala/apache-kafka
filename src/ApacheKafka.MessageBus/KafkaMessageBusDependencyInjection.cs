@@ -4,12 +4,9 @@ namespace ApacheKafka.MessageBus
 {
     public static class KafkaMessageBusDependencyInjection
     {
-        public static IServiceCollection AddMessageBus(this IServiceCollection services, string bootstrapServers)
+        public static IServiceCollection AddMessageBus(this IServiceCollection services, string bootstrapServers, string serviceName, string serviceVersion)
         {
-            if (bootstrapServers == null)
-                throw new ArgumentNullException(nameof(bootstrapServers));
-
-            services.AddSingleton<IKafkaMessageBus>(new KafkaMessageBus(bootstrapServers));
+            services.AddSingleton<IKafkaMessageBus>(new KafkaMessageBus(bootstrapServers, serviceName, serviceVersion));
 
             return services;
         }
