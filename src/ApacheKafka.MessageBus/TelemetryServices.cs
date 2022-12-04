@@ -20,33 +20,6 @@ namespace ApacheKafka.MessageBus
             ServiceVersion = serviceVersion;
         }
 
-        private (Activity, ActivityContext) AddNewActivity(string activityName, ActivityKind kind, Dictionary<string, string> tags)
-        {
-            using var activity = new ActivitySource(ServiceName, ServiceVersion)
-                .StartActivity(activityName, kind);
-
-            ActivityContext contextToInject = default;
-
-            if (activity is not null)
-            {
-                contextToInject = activity.Context;
-            }
-            else if (Activity.Current is not null)
-            {
-                contextToInject = Activity.Current.Context;
-            }
-
-            if(tags.Any())
-            {
-                foreach (var tag in tags)
-                {
-                    activity?.SetTag(tag.Key, tag.Value);
-                }
-            }
-
-            return (activity!, contextToInject);
-        }
-
         public void AddKafkaProducerEventActivity<T>(string activityName, Headers headers, T messageBody)
         {
             var tags = new Dictionary<string, string>()
@@ -68,6 +41,33 @@ namespace ApacheKafka.MessageBus
             {
                 _textMapPropagator.Inject(new PropagationContext(context, Baggage.Current), headers, InjectTraceContextIntoHeaders);
             };
+        }
+
+        private (Activity, ActivityContext) AddNewActivity(string activityName, ActivityKind kind, Dictionary<string, string> tags)
+        {
+            using var activity = new ActivitySource(ServiceName, ServiceVersion)
+                .StartActivity(activityName, kind);
+
+            ActivityContext contextToInject = default;
+
+            if (activity is not null)
+            {
+                contextToInject = activity.Context;
+            }
+            else if (Activity.Current is not null)
+            {
+                contextToInject = Activity.Current.Context;
+            }
+
+            if (tags.Any())
+            {
+                foreach (var tag in tags)
+                {
+                    activity?.SetTag(tag.Key, tag.Value);
+                }
+            }
+
+            return (activity!, contextToInject);
         }
 
         private static void InjectTraceContextIntoHeaders(Headers headers, string key, string value)
