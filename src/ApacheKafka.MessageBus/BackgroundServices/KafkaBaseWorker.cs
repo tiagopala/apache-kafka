@@ -1,10 +1,12 @@
 ﻿using ApacheKafkaWorker.Infrastructure.Avros;
 using Confluent.Kafka;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
+using System;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -13,19 +15,19 @@ namespace ApacheKafka.MessageBus.BackgroundServices
 {
     public abstract class BaseKafkaWorker<T> : BackgroundService where T : IRequest
     {
+        private readonly IServiceProvider _serviceProvider;
         private readonly TextMapPropagator _textMapPropagator = Propagators.DefaultTextMapPropagator;
         private readonly ILogger<BaseKafkaWorker<T>> _logger;
-        private readonly IMediator _mediator;
         private readonly string _bootstrapServers;
         private readonly string _groupId;
         private readonly string _topicName;
         private readonly string _serviceName;
         private readonly string _serviceVersion;
 
-        protected BaseKafkaWorker(ILogger<BaseKafkaWorker<T>> logger, IMediator mediator, string bootstrapServers, string groupId, string topicName, string serviceName, string serviceVersion)
+        protected BaseKafkaWorker(IServiceProvider serviceProvider, ILogger<BaseKafkaWorker<T>> logger, string bootstrapServers, string groupId, string topicName, string serviceName, string serviceVersion)
         {
+            _serviceProvider = serviceProvider;
             _logger = logger;
-            _mediator = mediator;
             _bootstrapServers = bootstrapServers;
             _groupId = groupId;
             _topicName = topicName;
@@ -95,8 +97,12 @@ namespace ApacheKafka.MessageBus.BackgroundServices
 
                         var headers = result.Message.Headers.ToDictionary(h => h.Key, h => Encoding.UTF8.GetString(h.GetValueBytes()));
 
-                        await _mediator.Send(message);
+                        using (IServiceScope scope = _serviceProvider.CreateScope())
+                        {
+                            IMediator mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
+                            await mediator.Send(message);
+                        }
                     }
                     catch (Exception e)
                     {

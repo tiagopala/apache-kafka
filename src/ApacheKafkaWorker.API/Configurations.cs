@@ -1,4 +1,4 @@
-﻿using ApacheKafka.MessageBus;
+﻿using ApacheKafka.MessageBus.Configurations;
 using ApacheKafkaWorker.API.BackgroundServices;
 using ApacheKafkaWorker.Domain.Commands;
 using ApacheKafkaWorker.Domain.Events;
@@ -14,7 +14,7 @@ namespace ApacheKafkaWorker.API
         public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
         {
             _ = services
-                .AddMessageBus(configuration["Kafka:BootstrapServers"]!, typeof(Program).Assembly.GetName().Name!, typeof(Program).Assembly.GetName().Version!.ToString())
+                .AddKafkaMessagePublisher(configuration["Kafka:BootstrapServers"]!, typeof(Program).Assembly.GetName().Name!, typeof(Program).Assembly.GetName().Version!.ToString())
                 .AddMediatR(typeof(CreateNaturalPersonCommand))
                 .AddScoped<INaturalPersonServices, NaturalPersonServices>()
                 .AddScoped<IRequestHandler<NaturalPersonCreatedEvent>, NaturalPersonCreatedEventHandler>()
