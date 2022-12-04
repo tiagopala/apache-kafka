@@ -1,4 +1,5 @@
 ﻿using ApacheKafka.MessageBus.BackgroundServices;
+using ApacheKafkaWorker.API.Tracing;
 using ApacheKafkaWorker.Domain.Events;
 using MediatR;
 
@@ -12,8 +13,8 @@ namespace ApacheKafkaWorker.API.BackgroundServices
                    configuration["Kafka:BootstrapServers"]!,
                    configuration["Kafka:Consumer:GroupId"]!,
                    configuration["Kafka:TopicName"]!,
-                   typeof(NaturalPersonCreatedBackgroundService).Assembly.GetName().Name!,
-                   typeof(NaturalPersonCreatedBackgroundService).Assembly.GetName().Version!.ToString())
+                   OpenTelemetryExtensions.ServiceName,
+                   OpenTelemetryExtensions.ServiceVersion)
         { }
     }
 }

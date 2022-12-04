@@ -1,5 +1,6 @@
 using ApacheKafkaWorker.API;
 using ApacheKafkaWorker.API.Tracing;
+using Microsoft.AspNetCore.HttpLogging;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
@@ -29,6 +30,9 @@ builder.Host.UseSerilog((host, loggerConfiguration) =>
     loggerConfiguration
         .ReadFrom.Configuration(builder.Configuration));
 
+// HTTP Logging for incoming request body
+builder.Services.AddHttpLogging(logging => logging.LoggingFields = HttpLoggingFields.All);
+
 builder.Services.AddControllers();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services
@@ -37,6 +41,9 @@ builder.Services
     .AddServices(builder.Configuration);
 
 var app = builder.Build();
+
+// Enabling HTTP Logging
+app.UseHttpLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

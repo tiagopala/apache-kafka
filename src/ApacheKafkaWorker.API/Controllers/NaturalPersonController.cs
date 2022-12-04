@@ -2,7 +2,6 @@ using ApacheKafkaWorker.API.Tracing;
 using ApacheKafkaWorker.Domain.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 using System.Text.Json;
 
 namespace ApacheKafkaWorker.API.Controllers
@@ -24,22 +23,6 @@ namespace ApacheKafkaWorker.API.Controllers
         public async Task<IActionResult> Post(CreateNaturalPersonCommand cmd)
         {
             // TODO: Validate command using FluentValidation
-
-            using var activity = OpenTelemetryExtensions.CreateActivitySource()
-                .StartActivity("PersonCreateRequested");
-
-            ActivityContext contextToInject = default;
-
-            if (activity is not null)
-            {
-                contextToInject = activity.Context;
-            } 
-            else if (Activity.Current is not null)
-            {
-                contextToInject = Activity.Current.Context;
-            }
-
-            activity?.SetTag("payload", JsonSerializer.Serialize(cmd));
 
             _logger.LogInformation($"Create natural person requested. Payload: {JsonSerializer.Serialize(cmd)}");
 

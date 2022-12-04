@@ -1,8 +1,5 @@
 ﻿using ApacheKafkaWorker.Infrastructure.Avros;
 using Confluent.Kafka;
-using OpenTelemetry;
-using OpenTelemetry.Context.Propagation;
-using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
@@ -14,8 +11,6 @@ public class KafkaMessageBus : IKafkaMessageBus
     private readonly string _serviceName;
     private readonly string _serviceVersion;
 
-    private readonly TextMapPropagator _textMapPropagator = Propagators.DefaultTextMapPropagator;
-
     public KafkaMessageBus(string bootstrapServers, string serviceName, string serviceVersion)
     {
         _bootstrapServers = bootstrapServers;
@@ -25,29 +20,23 @@ public class KafkaMessageBus : IKafkaMessageBus
 
     public async Task ProduceAsync<T>(string topicName, T message)
     {
-        var activitySource = new ActivitySource(_serviceName, _serviceVersion);
-
-        using var activity = activitySource.StartActivity($"{topicName}Send", ActivityKind.Producer);
-
-        ActivityContext contextToInject = default;
-        if (activity != null)
-        {
-            contextToInject = activity.Context;
-        }
-        else if (Activity.Current != null)
-        {
-            contextToInject = Activity.Current.Context;
-        }
-
-        activity?.SetTag("messaging.system", "kafka");
-        activity?.SetTag("messaging.destination_kind", "topic");
-        activity?.SetTag("messaging.destination", topicName);
-        activity?.SetTag("messaging.operation", "process");
-        activity?.SetTag("message", JsonSerializer.Serialize(message));
+        var telemetryServices = new TelemetryServices(_serviceName, _serviceVersion);
 
         var headers = new Headers();
 
-        _textMapPropagator.Inject(new PropagationContext(contextToInject, Baggage.Current), headers, InjectTraceContextIntoHeaders);
+        var tags = new KeyValuePair<string, string>[]
+        {
+            new KeyValuePair<string, string>("messaging.system", "kafka"),
+            new KeyValuePair<string, string>("messaging.destination_kind", "topic"),
+            new KeyValuePair<string, string>("messaging.destination", topicName),
+            new KeyValuePair<string, string>("messaging.operation", "process"),
+            new KeyValuePair<string, string>("message", JsonSerializer.Serialize(message))
+        };
+
+        telemetryServices.AddProducerEventActivity(
+            $"{topicName}Send",
+            headers,
+            InjectTraceContextIntoHeaders, tags);
 
         var config = new ProducerConfig
         {
