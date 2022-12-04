@@ -1,7 +1,6 @@
 ﻿using ApacheKafkaWorker.Infrastructure.Avros;
 using Confluent.Kafka;
 using System.Text;
-using System.Text.Json;
 
 namespace ApacheKafka.MessageBus;
 
@@ -22,21 +21,15 @@ public class KafkaMessageBus : IKafkaMessageBus
     {
         var telemetryServices = new TelemetryServices(_serviceName, _serviceVersion);
 
-        var headers = new Headers();
-
-        var tags = new KeyValuePair<string, string>[]
+        var headers = new Headers
         {
-            new KeyValuePair<string, string>("messaging.system", "kafka"),
-            new KeyValuePair<string, string>("messaging.destination_kind", "topic"),
-            new KeyValuePair<string, string>("messaging.destination", topicName),
-            new KeyValuePair<string, string>("messaging.operation", "process"),
-            new KeyValuePair<string, string>("message", JsonSerializer.Serialize(message))
+            new Header("messaging.system", Encoding.UTF8.GetBytes("kafka")),
+            new Header("messaging.destination_kind", Encoding.UTF8.GetBytes("topic")),
+            new Header("messaging.destination", Encoding.UTF8.GetBytes(topicName)),
+            new Header("messaging.operation", Encoding.UTF8.GetBytes("process"))
         };
 
-        telemetryServices.AddProducerEventActivity(
-            $"{topicName}Send",
-            headers,
-            InjectTraceContextIntoHeaders, tags);
+        telemetryServices.AddKafkaProducerEventActivity($"{topicName}Send", headers, message);
 
         var config = new ProducerConfig
         {
@@ -56,8 +49,4 @@ public class KafkaMessageBus : IKafkaMessageBus
 
         await Task.CompletedTask;
     }
-
-    private void InjectTraceContextIntoHeaders(Headers headers, string key, string value)
-        => headers.Add(key, Encoding.UTF8.GetBytes(value));
-
 }

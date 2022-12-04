@@ -1,6 +1,9 @@
-﻿using OpenTelemetry;
+﻿using Confluent.Kafka;
+using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
 
 namespace ApacheKafka.MessageBus
 {
@@ -17,7 +20,7 @@ namespace ApacheKafka.MessageBus
             ServiceVersion = serviceVersion;
         }
 
-        private (Activity, ActivityContext) AddNewActivity(string activityName, ActivityKind kind, params KeyValuePair<string, string>[] tags)
+        private (Activity, ActivityContext) AddNewActivity(string activityName, ActivityKind kind, Dictionary<string, string> tags)
         {
             using var activity = new ActivitySource(ServiceName, ServiceVersion)
                 .StartActivity(activityName, kind);
@@ -33,22 +36,41 @@ namespace ApacheKafka.MessageBus
                 contextToInject = Activity.Current.Context;
             }
 
-            foreach (var tag in tags)
+            if(tags.Any())
             {
-                activity?.SetTag(tag.Key, tag.Value);
+                foreach (var tag in tags)
+                {
+                    activity?.SetTag(tag.Key, tag.Value);
+                }
             }
 
             return (activity!, contextToInject);
         }
 
-        public void AddProducerEventActivity<T>(string activityName, T generic, Action<T, string, string> action, params KeyValuePair<string, string>[] tags)
+        public void AddKafkaProducerEventActivity<T>(string activityName, Headers headers, T messageBody)
         {
-            var (activity, context) = AddNewActivity(activityName, ActivityKind.Producer, tags);
+            var tags = new Dictionary<string, string>()
+            {
+                { "message", JsonSerializer.Serialize(messageBody) }
+            };
+
+            if (headers.Any())
+            {
+                foreach (var header in headers)
+                {
+                    tags.Add(header.Key, Encoding.UTF8.GetString(header.GetValueBytes()));
+                }
+            }
+
+            var (activity, context) = AddNewActivity(activityName, ActivityKind.Producer, tags!);
 
             using (activity!)
             {
-                _textMapPropagator.Inject(new PropagationContext(context, Baggage.Current), generic, action);
+                _textMapPropagator.Inject(new PropagationContext(context, Baggage.Current), headers, InjectTraceContextIntoHeaders);
             };
         }
+
+        private static void InjectTraceContextIntoHeaders(Headers headers, string key, string value)
+            => headers.Add(key, Encoding.UTF8.GetBytes(value));
     }
 }
