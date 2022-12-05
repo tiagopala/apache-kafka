@@ -1,10 +1,13 @@
-﻿using ApacheKafkaWorker.Infrastructure.Avros;
+﻿using ApacheKafka.MessageBus.Extensions;
+using ApacheKafkaWorker.Infrastructure.Avros;
 using Confluent.Kafka;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
+using System;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -13,19 +16,19 @@ namespace ApacheKafka.MessageBus.BackgroundServices
 {
     public abstract class BaseKafkaWorker<T> : BackgroundService where T : IRequest
     {
+        private readonly IServiceProvider _serviceProvider;
         private readonly TextMapPropagator _textMapPropagator = Propagators.DefaultTextMapPropagator;
         private readonly ILogger<BaseKafkaWorker<T>> _logger;
-        private readonly IMediator _mediator;
         private readonly string _bootstrapServers;
         private readonly string _groupId;
         private readonly string _topicName;
         private readonly string _serviceName;
         private readonly string _serviceVersion;
 
-        protected BaseKafkaWorker(ILogger<BaseKafkaWorker<T>> logger, IMediator mediator, string bootstrapServers, string groupId, string topicName, string serviceName, string serviceVersion)
+        protected BaseKafkaWorker(IServiceProvider serviceProvider, ILogger<BaseKafkaWorker<T>> logger, string bootstrapServers, string groupId, string topicName, string serviceName, string serviceVersion)
         {
+            _serviceProvider = serviceProvider;
             _logger = logger;
-            _mediator = mediator;
             _bootstrapServers = bootstrapServers;
             _groupId = groupId;
             _topicName = topicName;
@@ -65,38 +68,36 @@ namespace ApacheKafka.MessageBus.BackgroundServices
                         var parentContext = _textMapPropagator.Extract(default, result.Message.Headers, ExtractTraceContextFromHeaders);
                         Baggage.Current = parentContext.Baggage;
 
-                        var activitySource = new ActivitySource(_serviceName, _serviceVersion);
+                        using var activity = new ActivitySource(_serviceName, _serviceVersion)
+                            .StartActivity($"{_topicName}Received", ActivityKind.Consumer, parentContext.ActivityContext);
 
-                        using var activity = activitySource.StartActivity($"{_topicName}Received", ActivityKind.Consumer, parentContext.ActivityContext);
-
-                        ActivityContext contextToInject = default;
-                        if (activity != null)
-                        {
-                            contextToInject = activity.Context;
-                        }
-                        else if (Activity.Current != null)
-                        {
-                            contextToInject = Activity.Current.Context;
-                        }
+                        SetActivityContext(activity!);
 
                         var message = result.Message.Value;
+                        
+                        var headers = result.Message.Headers;
 
-                        var serializedMessage = JsonSerializer.Serialize(message);
+                        headers.AddHeader("messaging.system", "kafka");
+                        headers.AddHeader("messaging.destination_kind", "topic");
+                        headers.AddHeader("messaging.destination", _topicName);
+                        headers.AddHeader("messaging.operation", "process");
+                        headers.AddHeader("messaging.kafka.consumer_group", _groupId);
+                        headers.AddHeader("messaging.kafka.partition", result.Partition.ToString());
 
-                        activity?.SetTag("messaging.system", "kafka");
-                        activity?.SetTag("messaging.destination_kind", "topic");
-                        activity?.SetTag("messaging.destination", _topicName);
-                        activity?.SetTag("messaging.operation", "process");
-                        activity?.SetTag("messaging.kafka.consumer_group", _groupId);
-                        activity?.SetTag("messaging.kafka.partition", result.Partition.ToString());
-                        activity?.SetTag("message", serializedMessage);
+                        foreach (var header in headers)
+                        {
+                            activity!.SetTag(header.Key, Encoding.UTF8.GetString(header.GetValueBytes()));
+                        }
 
-                        _logger.Log(LogLevel.Information, $"Message received. Payload: {serializedMessage}");
+                        activity!.SetTag("messaging.payload", JsonSerializer.Serialize(message));
 
-                        var headers = result.Message.Headers.ToDictionary(h => h.Key, h => Encoding.UTF8.GetString(h.GetValueBytes()));
+                        _logger.Log(LogLevel.Information, $"Message received. Payload: {JsonSerializer.Serialize(message)}");
 
-                        await _mediator.Send(message);
+                        using IServiceScope scope = _serviceProvider.CreateScope();
 
+                        IMediator mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+                        await mediator.Send(message);
                     }
                     catch (Exception e)
                     {
@@ -122,6 +123,19 @@ namespace ApacheKafka.MessageBus.BackgroundServices
                 return new[] { Encoding.UTF8.GetString(header.GetValueBytes()) };
 
             return Enumerable.Empty<string>();
+        }
+
+        private static void SetActivityContext(Activity activity)
+        {
+            ActivityContext contextToInject = default;
+            if (activity != null)
+            {
+                contextToInject = activity.Context;
+            }
+            else if (Activity.Current != null)
+            {
+                contextToInject = Activity.Current.Context;
+            }
         }
     }
 }

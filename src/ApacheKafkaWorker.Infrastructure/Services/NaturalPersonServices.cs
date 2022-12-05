@@ -1,4 +1,4 @@
-﻿using ApacheKafka.MessageBus;
+﻿using ApacheKafka.MessageBus.MessageBus;
 using ApacheKafkaWorker.Domain.Commands;
 using ApacheKafkaWorker.Domain.Events;
 using ApacheKafkaWorker.Domain.Services;
@@ -7,9 +7,9 @@ namespace ApacheKafkaWorker.Infrastructure.Services
 {
     public class NaturalPersonServices : INaturalPersonServices
     {
-        private readonly IKafkaMessageBus _messageBus;
+        private readonly IKafkaMessagePublisher _messageBus;
 
-        public NaturalPersonServices(IKafkaMessageBus messageBus)
+        public NaturalPersonServices(IKafkaMessagePublisher messageBus)
         {
             _messageBus = messageBus;
         }
