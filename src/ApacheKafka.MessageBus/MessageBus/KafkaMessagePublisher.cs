@@ -4,6 +4,7 @@ using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
 
 namespace ApacheKafka.MessageBus.MessageBus;
 
@@ -26,6 +27,8 @@ public class KafkaMessagePublisher : IKafkaMessagePublisher
     {
         using var activity = new ActivitySource(_serviceName, _serviceVersion)
                 .StartActivity($"{topicName}Send", ActivityKind.Producer);
+
+        activity!.SetTag("messaging.payload", JsonSerializer.Serialize(message));
 
         var headers = new Headers
         {

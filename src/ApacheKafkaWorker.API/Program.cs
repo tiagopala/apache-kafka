@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.HttpLogging;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using System.Diagnostics;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,8 +17,20 @@ builder.Services.AddOpenTelemetryTracing(tracerProviderBuilder =>
         .SetResourceBuilder(
             ResourceBuilder.CreateDefault()
                 .AddService(serviceName: OpenTelemetryExtensions.ServiceName, serviceVersion: OpenTelemetryExtensions.ServiceVersion))
-        .AddHttpClientInstrumentation()
-        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation(options =>
+        {
+            options.EnrichWithHttpRequestMessage = (activity, request) =>
+            {
+                // TODO: Add request content body at tags.
+            };
+        })
+        .AddAspNetCoreInstrumentation(options =>
+        {
+            options.EnrichWithHttpRequest = (activity, request) =>
+            {
+                // TODO: Add request content body at tags.
+            };
+        })
         .AddConsoleExporter() // Exportando também para o Console para capturar o traceId e pesquisar diretamente no jaeger
         .AddJaegerExporter(exporter =>
         {
